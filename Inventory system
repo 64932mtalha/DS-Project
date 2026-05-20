@@ -1,0 +1,237 @@
+#include <iostream.h>
+#include <string>
+using namespace std;
+
+/*  QUEUE USING LINKED LIST  */
+
+struct Order {
+    int orderID;
+    string productName;
+    string quantity;  // e.g. 10kg, 5pcs
+    string price;     // e.g. 100$, 2500rs
+    Order* next;
+};
+
+Order* head = NULL;  // front
+Order* tail = NULL;  // rear
+
+void addOrder(int id, string name, string qty, string pr) {
+    Order* newOrder = new Order();
+    newOrder->orderID = id;
+    newOrder->productName = name;
+    newOrder->quantity = qty;
+    newOrder->price = pr;
+    newOrder->next = NULL;
+
+    if (head == NULL) {
+        head = tail = newOrder;
+    } else {
+        tail->next = newOrder;
+        tail = newOrder;
+    }
+
+    cout << "Order Added Successfully!\n";
+}
+
+void processOrder() {
+    if (head == NULL) {
+        cout << "No orders to process.\n";
+        return;
+    }
+
+    Order* temp = head;
+    cout << "Processing Order ID: " << temp->orderID << endl;
+
+    head = head->next;
+    delete temp;
+
+    if (head == NULL)
+        tail = NULL;
+}
+
+// Simple selection sort for orders by ID
+void sortOrdersByID() {
+    if (head == NULL) {
+        cout << "No orders to sort.\n";
+        return;
+    }
+    
+    // First, count how many orders we have
+    int count = 0;
+    Order* temp = head;
+    while (temp != NULL) {
+        count++;
+        temp = temp->next;
+    }
+    
+    // Create an array of Order pointers
+    Order** orders = new Order*[count];
+    
+    // Fill the array with orders
+    temp = head;
+    for (int i = 0; i < count; i++) {
+        orders[i] = temp;
+        temp = temp->next;
+    }
+    
+    // Selection sort by orderID
+    for (int i = 0; i < count - 1; i++) {
+        int minIndex = i;
+        for (int j = i + 1; j < count; j++) {
+            if (orders[j]->orderID < orders[minIndex]->orderID) {
+                minIndex = j;
+            }
+        }
+        // Swap
+        if (minIndex != i) {
+            Order* tempOrder = orders[i];
+            orders[i] = orders[minIndex];
+            orders[minIndex] = tempOrder;
+        }
+    }
+    
+    // Display sorted orders
+    cout << "\n----- Orders Sorted by ID -----\n";
+    for (int i = 0; i < count; i++) {
+        cout << "Order ID   : " << orders[i]->orderID << endl;
+        cout << "Product    : " << orders[i]->productName << endl;
+        cout << "Quantity   : " << orders[i]->quantity << endl;
+        cout << "Price/unit : " << orders[i]->price << endl;
+        cout << "--------------------------\n";
+    }
+    
+    delete[] orders;
+}
+
+void viewOrders() {
+    if (head == NULL) {
+        cout << "No pending orders.\n";
+        return;
+    }
+
+    Order* temp = head;
+    cout << "\n----- Pending Orders -----\n";
+    while (temp != NULL) {
+        cout << "Order ID   : " << temp->orderID << endl;
+        cout << "Product    : " << temp->productName << endl;
+        cout << "Quantity   : " << temp->quantity << endl;
+        cout << "Price/unit : " << temp->price << endl;
+        cout << "-\n";
+        temp = temp->next;
+    }
+}
+
+/*  BINARY SEARCH TREE  */
+
+struct BST {
+    int orderID;
+    string productName;
+    string quantity;
+    string price;
+    BST* left;
+    BST* right;
+};
+
+BST* insertBST(BST* root, int id, string name, string qty, string pr) {
+    if (root == NULL) {
+        BST* node = new BST();
+        node->orderID = id;
+        node->productName = name;
+        node->quantity = qty;
+        node->price = pr;
+        node->left = node->right = NULL;
+        return node;
+    }
+
+    if (id < root->orderID)
+        root->left = insertBST(root->left, id, name, qty, pr);
+    else
+        root->right = insertBST(root->right, id, name, qty, pr);
+
+    return root;
+}
+
+void searchBST(BST* root, int id) {
+    if (root == NULL) {
+        cout << "Order not found!\n";
+        return;
+    }
+
+    if (root->orderID == id) {
+        cout << "\nOrder Found!\n";
+        cout << "Order ID   : " << root->orderID << endl;
+        cout << "Product    : " << root->productName << endl;
+        cout << "Quantity   : " << root->quantity << endl;
+        cout << "Price/unit : " << root->price << endl;
+    } 
+    else if (id < root->orderID) {
+        searchBST(root->left, id);
+    } 
+    else {
+        searchBST(root->right, id);
+    }
+}
+
+/*  MAIN FUNCTION */
+
+int main() {
+    int choice, id;
+    string name, quantity, price;
+    BST* root = NULL;
+
+    do {
+        cout << "\n===== Inventory Management System =====\n";
+        cout << "1. Add New Order (Enqueue)\n";
+        cout << "2. Process Order (Dequeue)\n";
+        cout << "3. View Pending Orders\n";
+        cout << "4. Sort Orders by ID (Selection Sort)\n";
+        cout << "5. Search Order (BST)\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1:
+            cout << "Enter Order ID: ";
+            cin >> id;
+            cout << "Enter Product Name: ";
+            cin >> name;
+            cout << "Enter Quantity (e.g. 10kg, 5pcs): ";
+            cin >> quantity;
+            cout << "Enter Price (e.g. 100$, 2500rs): ";
+            cin >> price;
+
+            addOrder(id, name, quantity, price);
+            root = insertBST(root, id, name, quantity, price);
+            break;
+
+        case 2:
+            processOrder();
+            break;
+
+        case 3:
+            viewOrders();
+            break;
+
+        case 4:
+            sortOrdersByID();
+            break;
+
+        case 5:
+            cout << "Enter Order ID to search: ";
+            cin >> id;
+            searchBST(root, id);
+            break;
+
+        case 6:
+            cout << "Exiting Program...\n";
+            break;
+
+        default:
+            cout << "Invalid Choice!\n";
+        }
+
+    } while (choice != 6);
+
+    return 0;
+}
