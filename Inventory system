@@ -1,167 +1,117 @@
-#include <iostream>
-#include <string>
-#include <iomanip>
-using namespace std;
- 
-struct Product {
-    int    id;
-    string name;
-    string category;
-    int    quantity;
-    float  price;
-};
- 
-struct Node {
-    Product data;
-    Node*   next;
-};
- 
-struct StackNode {
-    Product    data;
-    StackNode* next;
-};
- 
-class LinkedList {
-private:
-    Node* head;
-    int   count;
- 
-public:
-    LinkedList() : head(NULL), count(0) {}
- 
-    void addProduct(Product p) {
-        Node* newNode = new Node();
-        newNode->data = p;
-        newNode->next = NULL;
- 
-        if (head == NULL) {
-            head = newNode;
-        } else {
-            Node* temp = head;
-            while (temp->next != NULL)
+void printMenu() {
+    cout << "\n";
+    cout << "  ┌──────────────────────────────┐\n";
+    cout << "  │          MAIN MENU           │\n";
+    cout << "  ├──────────────────────────────┤\n";
+    cout << "  │  1. Add Product              │\n";
+    cout << "  │  2. View All Products        │\n";
+    cout << "  │  3. Search Product (Array)   │\n";
+    cout << "  │  4. Update Product           │\n";
+    cout << "  │  5. Delete Product           │\n";
+    cout << "  │  6. Undo Last Delete (Stack) │\n";
+    cout << "  │  7. View Recycle Bin (Stack) │\n";
+    cout << "  │  8. Low Stock Report         │\n";
+    cout << "  │  0. Exit                     │\n";
+    cout << "  └──────────────────────────────┘\n";
+    cout << "  Enter choice: ";
+}
+
+int main() {
+    LinkedList  inventory;
+    Stack       recycleBin;
+    SearchArray results;
+
+    int choice;
+    do {
+        printMenu();
+        cin >> choice;
+
+        if (choice == 1) {
+            Product p;
+            p.id = inventory.nextID();
+            cout << "\n  ── Add New Product ──\n";
+            cout << "  Auto ID   : " << p.id << "\n";
+            cout << "  Name      : "; cin.ignore(); getline(cin, p.name);
+            cout << "  Category  : "; getline(cin, p.category);
+            cout << "  Quantity  : "; cin >> p.quantity;
+            cout << "  Price     : "; cin >> p.price;
+            inventory.addProduct(p);
+        }
+        else if (choice == 2) {
+            cout << "\n  ── All Products (Linked List) ──";
+            inventory.displayAll();
+        }
+        else if (choice == 3) {
+            string keyword;
+            cout << "\n  ── Search Product ──\n";
+            cout << "  Enter name or category keyword: ";
+            cin.ignore(); getline(cin, keyword);
+
+            string kwLower = keyword;
+            for (int i = 0; i < (int)kwLower.size(); i++) kwLower[i] = tolower(kwLower[i]);
+
+            results.clear();
+            Node* temp = inventory.getHead();
+            while (temp != NULL) {
+                string nameLower = temp->data.name;
+                for (int i = 0; i < (int)nameLower.size(); i++) nameLower[i] = tolower(nameLower[i]);
+                string catLower = temp->data.category;
+                for (int i = 0; i < (int)catLower.size(); i++) catLower[i] = tolower(catLower[i]);
+
+                if (nameLower.find(kwLower) != string::npos ||
+                    catLower.find(kwLower)  != string::npos) {
+                    results.add(temp->data);
+                }
                 temp = temp->next;
-            temp->next = newNode;
-        }
-        count++;
-        cout << "\n  [OK] Product added successfully!\n";
-    }
- 
-    void displayAll() {
-        if (head == NULL) {
-            cout << "\n  [!] No products in inventory.\n";
-            return;
-        }
-        cout << "\n";
-        cout << "  " << string(72, '-') << "\n";
-        cout << "  " << left
-             << setw(6)  << "ID"
-             << setw(18) << "Name"
-             << setw(14) << "Category"
-             << setw(10) << "Qty"
-             << setw(10) << "Price(Rs)"
-             << "\n";
-        cout << "  " << string(72, '-') << "\n";
- 
-        Node* temp = head;
-        while (temp != NULL) {
-            cout << "  "
-                 << setw(6)  << temp->data.id
-                 << setw(18) << temp->data.name
-                 << setw(14) << temp->data.category
-                 << setw(10) << temp->data.quantity
-                 << setw(10) << fixed << setprecision(2) << temp->data.price
-                 << "\n";
-            temp = temp->next;
-        }
-        cout << "  " << string(72, '-') << "\n";
-        cout << "  Total Products: " << count << "\n";
-    }
- 
-    bool updateProduct(int id) {
-        Node* temp = head;
-        while (temp != NULL) {
-            if (temp->data.id == id) {
-                cout << "\n  Current Name     : " << temp->data.name;
-                cout << "\n  Current Category : " << temp->data.category;
-                cout << "\n  Current Quantity : " << temp->data.quantity;
-                cout << "\n  Current Price    : " << temp->data.price;
-                cout << "\n\n  Enter new Name     : "; cin.ignore(); getline(cin, temp->data.name);
-                cout << "  Enter new Category : "; getline(cin, temp->data.category);
-                cout << "  Enter new Quantity : "; cin >> temp->data.quantity;
-                cout << "  Enter new Price    : "; cin >> temp->data.price;
-                cout << "\n  [OK] Product updated successfully!\n";
-                return true;
             }
-            temp = temp->next;
+            results.display();
         }
-        return false;
-    }
- 
-    bool deleteProduct(int id, Product& deleted) {
-        if (head == NULL) return false;
- 
-        if (head->data.id == id) {
-            deleted = head->data;
-            Node* temp = head;
-            head = head->next;
-            delete temp;
-            count--;
-            return true;
+        else if (choice == 4) {
+            int id;
+            cout << "\n  ── Update Product ──\n";
+            cout << "  Enter Product ID to update: "; cin >> id;
+            if (!inventory.updateProduct(id))
+                cout << "\n  [!] Product ID " << id << " not found.\n";
         }
- 
-        Node* prev = head;
-        Node* curr = head->next;
-        while (curr != NULL) {
-            if (curr->data.id == id) {
-                deleted = curr->data;
-                prev->next = curr->next;
-                delete curr;
-                count--;
-                return true;
+        else if (choice == 5) {
+            int id;
+            cout << "\n  ── Delete Product ──\n";
+            cout << "  Enter Product ID to delete: "; cin >> id;
+            Product deleted;
+            if (inventory.deleteProduct(id, deleted)) {
+                recycleBin.push(deleted);
+                cout << "  [OK] Product deleted and moved to Recycle Bin.\n";
+                cout << "       (Use option 6 to undo)\n";
+            } else {
+                cout << "\n  [!] Product ID " << id << " not found.\n";
             }
-            prev = curr;
-            curr = curr->next;
         }
-        return false;
-    }
- 
-    void checkLowStock(int threshold = 5) {
-        cout << "\n  [Low Stock Report — Qty < " << threshold << "]\n";
-        cout << "  " << string(50, '-') << "\n";
-        bool found = false;
-        Node* temp = head;
-        while (temp != NULL) {
-            if (temp->data.quantity < threshold) {
-                cout << "  ID: " << temp->data.id
-                     << "  |  " << temp->data.name
-                     << "  |  Qty: " << temp->data.quantity << "\n";
-                found = true;
+        else if (choice == 6) {
+            Product restored;
+            if (recycleBin.pop(restored)) {
+                inventory.addProduct(restored);
+                cout << "  [OK] Restored: " << restored.name << "\n";
+            } else {
+                cout << "\n  [!] Recycle bin is empty. Nothing to undo.\n";
             }
-            temp = temp->next;
         }
-        if (!found)
-            cout << "  All products have sufficient stock.\n";
-        cout << "  " << string(50, '-') << "\n";
-    }
- 
-    Node* getHead() { return head; }
- 
-    int nextID() {
-        int maxID = 0;
-        Node* temp = head;
-        while (temp != NULL) {
-            if (temp->data.id > maxID) maxID = temp->data.id;
-            temp = temp->next;
+        else if (choice == 7) {
+            recycleBin.viewDeletedItems();
         }
-        return maxID + 1;
-    }
- 
-    ~LinkedList() {
-        Node* temp;
-        while (head != NULL) {
-            temp = head;
-            head = head->next;
-            delete temp;
+        else if (choice == 8) {
+            int threshold;
+            cout << "\n  Enter low stock threshold (default 5): ";
+            cin >> threshold;
+            inventory.checkLowStock(threshold);
         }
-    }
-};
+        else if (choice == 0) {
+            cout << "\n  Goodbye! Exiting system...\n\n";
+        }
+        else {
+            cout << "\n  [!] Invalid choice. Please try again.\n";
+        }
+
+    } while (choice != 0);
+
+    return 0;
+}
