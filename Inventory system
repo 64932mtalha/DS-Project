@@ -1,237 +1,167 @@
-#include <iostream.h>
+#include <iostream>
 #include <string>
+#include <iomanip>
 using namespace std;
-
-/*  QUEUE USING LINKED LIST  */
-
-struct Order {
-    int orderID;
-    string productName;
-    string quantity;  // e.g. 10kg, 5pcs
-    string price;     // e.g. 100$, 2500rs
-    Order* next;
+ 
+struct Product {
+    int    id;
+    string name;
+    string category;
+    int    quantity;
+    float  price;
 };
-
-Order* head = NULL;  // front
-Order* tail = NULL;  // rear
-
-void addOrder(int id, string name, string qty, string pr) {
-    Order* newOrder = new Order();
-    newOrder->orderID = id;
-    newOrder->productName = name;
-    newOrder->quantity = qty;
-    newOrder->price = pr;
-    newOrder->next = NULL;
-
-    if (head == NULL) {
-        head = tail = newOrder;
-    } else {
-        tail->next = newOrder;
-        tail = newOrder;
-    }
-
-    cout << "Order Added Successfully!\n";
-}
-
-void processOrder() {
-    if (head == NULL) {
-        cout << "No orders to process.\n";
-        return;
-    }
-
-    Order* temp = head;
-    cout << "Processing Order ID: " << temp->orderID << endl;
-
-    head = head->next;
-    delete temp;
-
-    if (head == NULL)
-        tail = NULL;
-}
-
-// Simple selection sort for orders by ID
-void sortOrdersByID() {
-    if (head == NULL) {
-        cout << "No orders to sort.\n";
-        return;
-    }
-    
-    // First, count how many orders we have
-    int count = 0;
-    Order* temp = head;
-    while (temp != NULL) {
+ 
+struct Node {
+    Product data;
+    Node*   next;
+};
+ 
+struct StackNode {
+    Product    data;
+    StackNode* next;
+};
+ 
+class LinkedList {
+private:
+    Node* head;
+    int   count;
+ 
+public:
+    LinkedList() : head(NULL), count(0) {}
+ 
+    void addProduct(Product p) {
+        Node* newNode = new Node();
+        newNode->data = p;
+        newNode->next = NULL;
+ 
+        if (head == NULL) {
+            head = newNode;
+        } else {
+            Node* temp = head;
+            while (temp->next != NULL)
+                temp = temp->next;
+            temp->next = newNode;
+        }
         count++;
-        temp = temp->next;
+        cout << "\n  [OK] Product added successfully!\n";
     }
-    
-    // Create an array of Order pointers
-    Order** orders = new Order*[count];
-    
-    // Fill the array with orders
-    temp = head;
-    for (int i = 0; i < count; i++) {
-        orders[i] = temp;
-        temp = temp->next;
+ 
+    void displayAll() {
+        if (head == NULL) {
+            cout << "\n  [!] No products in inventory.\n";
+            return;
+        }
+        cout << "\n";
+        cout << "  " << string(72, '-') << "\n";
+        cout << "  " << left
+             << setw(6)  << "ID"
+             << setw(18) << "Name"
+             << setw(14) << "Category"
+             << setw(10) << "Qty"
+             << setw(10) << "Price(Rs)"
+             << "\n";
+        cout << "  " << string(72, '-') << "\n";
+ 
+        Node* temp = head;
+        while (temp != NULL) {
+            cout << "  "
+                 << setw(6)  << temp->data.id
+                 << setw(18) << temp->data.name
+                 << setw(14) << temp->data.category
+                 << setw(10) << temp->data.quantity
+                 << setw(10) << fixed << setprecision(2) << temp->data.price
+                 << "\n";
+            temp = temp->next;
+        }
+        cout << "  " << string(72, '-') << "\n";
+        cout << "  Total Products: " << count << "\n";
     }
-    
-    // Selection sort by orderID
-    for (int i = 0; i < count - 1; i++) {
-        int minIndex = i;
-        for (int j = i + 1; j < count; j++) {
-            if (orders[j]->orderID < orders[minIndex]->orderID) {
-                minIndex = j;
+ 
+    bool updateProduct(int id) {
+        Node* temp = head;
+        while (temp != NULL) {
+            if (temp->data.id == id) {
+                cout << "\n  Current Name     : " << temp->data.name;
+                cout << "\n  Current Category : " << temp->data.category;
+                cout << "\n  Current Quantity : " << temp->data.quantity;
+                cout << "\n  Current Price    : " << temp->data.price;
+                cout << "\n\n  Enter new Name     : "; cin.ignore(); getline(cin, temp->data.name);
+                cout << "  Enter new Category : "; getline(cin, temp->data.category);
+                cout << "  Enter new Quantity : "; cin >> temp->data.quantity;
+                cout << "  Enter new Price    : "; cin >> temp->data.price;
+                cout << "\n  [OK] Product updated successfully!\n";
+                return true;
             }
+            temp = temp->next;
         }
-        // Swap
-        if (minIndex != i) {
-            Order* tempOrder = orders[i];
-            orders[i] = orders[minIndex];
-            orders[minIndex] = tempOrder;
+        return false;
+    }
+ 
+    bool deleteProduct(int id, Product& deleted) {
+        if (head == NULL) return false;
+ 
+        if (head->data.id == id) {
+            deleted = head->data;
+            Node* temp = head;
+            head = head->next;
+            delete temp;
+            count--;
+            return true;
+        }
+ 
+        Node* prev = head;
+        Node* curr = head->next;
+        while (curr != NULL) {
+            if (curr->data.id == id) {
+                deleted = curr->data;
+                prev->next = curr->next;
+                delete curr;
+                count--;
+                return true;
+            }
+            prev = curr;
+            curr = curr->next;
+        }
+        return false;
+    }
+ 
+    void checkLowStock(int threshold = 5) {
+        cout << "\n  [Low Stock Report — Qty < " << threshold << "]\n";
+        cout << "  " << string(50, '-') << "\n";
+        bool found = false;
+        Node* temp = head;
+        while (temp != NULL) {
+            if (temp->data.quantity < threshold) {
+                cout << "  ID: " << temp->data.id
+                     << "  |  " << temp->data.name
+                     << "  |  Qty: " << temp->data.quantity << "\n";
+                found = true;
+            }
+            temp = temp->next;
+        }
+        if (!found)
+            cout << "  All products have sufficient stock.\n";
+        cout << "  " << string(50, '-') << "\n";
+    }
+ 
+    Node* getHead() { return head; }
+ 
+    int nextID() {
+        int maxID = 0;
+        Node* temp = head;
+        while (temp != NULL) {
+            if (temp->data.id > maxID) maxID = temp->data.id;
+            temp = temp->next;
+        }
+        return maxID + 1;
+    }
+ 
+    ~LinkedList() {
+        Node* temp;
+        while (head != NULL) {
+            temp = head;
+            head = head->next;
+            delete temp;
         }
     }
-    
-    // Display sorted orders
-    cout << "\n----- Orders Sorted by ID -----\n";
-    for (int i = 0; i < count; i++) {
-        cout << "Order ID   : " << orders[i]->orderID << endl;
-        cout << "Product    : " << orders[i]->productName << endl;
-        cout << "Quantity   : " << orders[i]->quantity << endl;
-        cout << "Price/unit : " << orders[i]->price << endl;
-        cout << "--------------------------\n";
-    }
-    
-    delete[] orders;
-}
-
-void viewOrders() {
-    if (head == NULL) {
-        cout << "No pending orders.\n";
-        return;
-    }
-
-    Order* temp = head;
-    cout << "\n----- Pending Orders -----\n";
-    while (temp != NULL) {
-        cout << "Order ID   : " << temp->orderID << endl;
-        cout << "Product    : " << temp->productName << endl;
-        cout << "Quantity   : " << temp->quantity << endl;
-        cout << "Price/unit : " << temp->price << endl;
-        cout << "-\n";
-        temp = temp->next;
-    }
-}
-
-/*  BINARY SEARCH TREE  */
-
-struct BST {
-    int orderID;
-    string productName;
-    string quantity;
-    string price;
-    BST* left;
-    BST* right;
 };
-
-BST* insertBST(BST* root, int id, string name, string qty, string pr) {
-    if (root == NULL) {
-        BST* node = new BST();
-        node->orderID = id;
-        node->productName = name;
-        node->quantity = qty;
-        node->price = pr;
-        node->left = node->right = NULL;
-        return node;
-    }
-
-    if (id < root->orderID)
-        root->left = insertBST(root->left, id, name, qty, pr);
-    else
-        root->right = insertBST(root->right, id, name, qty, pr);
-
-    return root;
-}
-
-void searchBST(BST* root, int id) {
-    if (root == NULL) {
-        cout << "Order not found!\n";
-        return;
-    }
-
-    if (root->orderID == id) {
-        cout << "\nOrder Found!\n";
-        cout << "Order ID   : " << root->orderID << endl;
-        cout << "Product    : " << root->productName << endl;
-        cout << "Quantity   : " << root->quantity << endl;
-        cout << "Price/unit : " << root->price << endl;
-    } 
-    else if (id < root->orderID) {
-        searchBST(root->left, id);
-    } 
-    else {
-        searchBST(root->right, id);
-    }
-}
-
-/*  MAIN FUNCTION */
-
-int main() {
-    int choice, id;
-    string name, quantity, price;
-    BST* root = NULL;
-
-    do {
-        cout << "\n===== Inventory Management System =====\n";
-        cout << "1. Add New Order (Enqueue)\n";
-        cout << "2. Process Order (Dequeue)\n";
-        cout << "3. View Pending Orders\n";
-        cout << "4. Sort Orders by ID (Selection Sort)\n";
-        cout << "5. Search Order (BST)\n";
-        cout << "6. Exit\n";
-        cout << "Enter your choice: ";
-        cin >> choice;
-
-        switch (choice) {
-        case 1:
-            cout << "Enter Order ID: ";
-            cin >> id;
-            cout << "Enter Product Name: ";
-            cin >> name;
-            cout << "Enter Quantity (e.g. 10kg, 5pcs): ";
-            cin >> quantity;
-            cout << "Enter Price (e.g. 100$, 2500rs): ";
-            cin >> price;
-
-            addOrder(id, name, quantity, price);
-            root = insertBST(root, id, name, quantity, price);
-            break;
-
-        case 2:
-            processOrder();
-            break;
-
-        case 3:
-            viewOrders();
-            break;
-
-        case 4:
-            sortOrdersByID();
-            break;
-
-        case 5:
-            cout << "Enter Order ID to search: ";
-            cin >> id;
-            searchBST(root, id);
-            break;
-
-        case 6:
-            cout << "Exiting Program...\n";
-            break;
-
-        default:
-            cout << "Invalid Choice!\n";
-        }
-
-    } while (choice != 6);
-
-    return 0;
-}
