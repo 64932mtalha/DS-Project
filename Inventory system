@@ -1,4 +1,99 @@
+class Stack {
+private:
+    StackNode* top;
+    int        size;
 
+public:
+    Stack() : top(NULL), size(0) {}
+
+    void push(Product p) {
+        StackNode* newNode = new StackNode();
+        newNode->data = p;
+        newNode->next = top;
+        top  = newNode;
+        size++;
+    }
+
+    bool pop(Product& p) {
+        if (top == NULL) return false;
+        p = top->data;
+        StackNode* temp = top;
+        top = top->next;
+        delete temp;
+        size--;
+        return true;
+    }
+
+    bool isEmpty() { return top == NULL; }
+
+    void viewDeletedItems() {
+        if (top == NULL) {
+            cout << "\n  [!] Recycle bin is empty.\n";
+            return;
+        }
+        cout << "\n  [Recycle Bin — Deleted Products]\n";
+        cout << "  " << string(50, '-') << "\n";
+        StackNode* temp = top;
+        while (temp != NULL) {
+            cout << "  ID: " << temp->data.id
+                 << "  |  " << temp->data.name
+                 << "  |  Qty: " << temp->data.quantity
+                 << "  |  Price: " << temp->data.price << "\n";
+            temp = temp->next;
+        }
+        cout << "  " << string(50, '-') << "\n";
+        cout << "  Items in bin: " << size << "\n";
+    }
+
+    ~Stack() {
+        StackNode* temp;
+        while (top != NULL) {
+            temp = top;
+            top  = top->next;
+            delete temp;
+        }
+    }
+};
+
+class SearchArray {
+private:
+    Product arr[20];
+    int     count;
+
+public:
+    SearchArray() : count(0) {}
+
+    void clear()             { count = 0; }
+    void add(Product p)      { if (count < 20) arr[count++] = p; }
+    int  getCount()          { return count; }
+
+    void display() {
+        if (count == 0) {
+            cout << "\n  [!] No matching products found.\n";
+            return;
+        }
+        cout << "\n  [Search Results — " << count << " found]\n";
+        cout << "  " << string(72, '-') << "\n";
+        cout << "  " << left
+             << setw(6)  << "ID"
+             << setw(18) << "Name"
+             << setw(14) << "Category"
+             << setw(10) << "Qty"
+             << setw(10) << "Price(Rs)"
+             << "\n";
+        cout << "  " << string(72, '-') << "\n";
+        for (int i = 0; i < count; i++) {
+            cout << "  "
+                 << setw(6)  << arr[i].id
+                 << setw(18) << arr[i].name
+                 << setw(14) << arr[i].category
+                 << setw(10) << arr[i].quantity
+                 << setw(10) << fixed << setprecision(2) << arr[i].price
+                 << "\n";
+        }
+        cout << "  " << string(72, '-') << "\n";
+    }
+};
 void printMenu() {
     cout << "\n";
     cout << "  ┌──────────────────────────────┐\n";
