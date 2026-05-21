@@ -1,3 +1,4 @@
+
 void printMenu() {
     cout << "\n";
     cout << "  ┌──────────────────────────────┐\n";
@@ -5,11 +6,11 @@ void printMenu() {
     cout << "  ├──────────────────────────────┤\n";
     cout << "  │  1. Add Product              │\n";
     cout << "  │  2. View All Products        │\n";
-    cout << "  │  3. Search Product (Array)   │\n";
+    cout << "  │  3. Search Product           │\n";
     cout << "  │  4. Update Product           │\n";
     cout << "  │  5. Delete Product           │\n";
-    cout << "  │  6. Undo Last Delete (Stack) │\n";
-    cout << "  │  7. View Recycle Bin (Stack) │\n";
+    cout << "  │  6. Undo Last Delete         │\n";
+    cout << "  │  7. View Recycle Bin         │\n";
     cout << "  │  8. Low Stock Report         │\n";
     cout << "  │  0. Exit                     │\n";
     cout << "  └──────────────────────────────┘\n";
